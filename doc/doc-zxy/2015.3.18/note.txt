@@ -1,0 +1,8 @@
+一.后台添加了通知栏PUSH功能
+
+文件更新
+1.controllers目录下添加了pushboard.php文件，对应网站上的通知栏PUSH。
+2.view和view/page中都添加了pushList.php和pushEdit.php,用于显示和编辑消息。
+3.models中添加了pushboard_model.php，对应新创建的数据库表message_push表。
+
+二.更新了贴纸列表中当有NEW标签时，多了一个配置NEW的操作。影响文件：views/page/stickerList.php

@@ -1,0 +1,6 @@
+新增了专题活动栏
+包含专题列表和添加专题功能
+在control中新建了subjectactivity.php控制器
+在model中新建了subjectactivity_model.php模型
+在view中新建了subjectactivityList和subjectactivityAdd视图
+在view/page中同样新建了subjectactivityList和subjectactivityAdd视图

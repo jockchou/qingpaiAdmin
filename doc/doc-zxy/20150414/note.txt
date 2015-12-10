@@ -1,0 +1,8 @@
+1,增加了可疑用户，数据库user表中新增字段isDubious,默认为0（正常）
+数据库user表中isDubious = -1作为可疑用户，
+在jjuser.php中增加setDubious函数，
+在topic_model中增加setDubiousByUserID函数
+在control下的home.php中添加打开主页时设置可疑用户新增帖子状态为可疑的函数（用户被设置为可疑时，
+以前未审的帖子全部置为可疑，在此之后该用户发布的帖子状态还是未审，即state=0，所以需要置为可疑，state=-3
+）
+新增了init_model作为打开主页时的初始化需求模型

@@ -1,0 +1,5 @@
+新增话题配置，subjectactivity
+机器人发帖同步到话题功能
+用户帖子被移除出话题，用小秘推送通知
+
+新增贴纸分类 strickerClass

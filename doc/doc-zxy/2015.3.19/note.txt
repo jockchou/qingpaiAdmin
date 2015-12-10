@@ -1,0 +1,213 @@
+一，增加了新选项，分为 优质，通过，低质，劣质 四个选项，以前版本的三个按钮被覆盖
+
+views/page/topicList.php中添加代码如下：
+
+<div class="widget-content">
+
+<!--优质，通过，低质，拒绝-->
+				
+<?php if($item['highQuality'] == 1):?>
+				
+<u>优质</u><input type="radio" name="<?=$item['id']?>" value="优质" checked="" id="r1"/>
+	<?php else:?>
+				
+<u>优质</u><input type="radio" name="<?=$item['id']?>" value="优质" id="r1"/>
+			<?php endif;?>
+				
+				
+<?php if($item['highQuality'] == 0 && $item['state'] == 1):?>
+				
+<u>通过</u><input type="radio" name="<?=$item['id']?>" value="通过" checked="" id="r2"/>
+	<?php else:?>
+				
+<u>通过</u><input type="radio" name="<?=$item['id']?>" value="通过" id="r2"/>
+			<?php endif;?>
+				
+				
+<?php if($item['highQuality'] == -1):?>
+				
+<u>低质</u><input type="radio" name="<?=$item['id']?>" value="低质" checked="" id="r3"/>
+	<?php else:?>
+				
+<u>低质</u><input type="radio" name="<?=$item['id']?>" value="低质" id="r3"/>
+			<?php endif;?>
+				
+				
+<?php if($item['state'] == -1):?>
+				
+<u>劣质</u><input type="radio" name="<?=$item['id']?>" value="劣质" checked="" id="r4"/>
+	<?php else:?>
+				
+<u>劣质</u><input type="radio" name="<?=$item['id']?>" value="劣质" id="r4"/>
+			
+<?php endif;?>
+
+			
+</div>
+
+二，修改了批量处理功能
+
+views/topicList.php添加代码如下：
+
+var topicIdArray_Quality = [];
+		
+var topicIdArray_Pass = [];
+		
+var topicIdArray_Low = [];
+		
+var topicIdArray_Refuse = [];
+				
+$("input:radio:checked").each(function() {
+			
+if(this.id == 'r1'){
+				
+topicIdArray_Quality.push(this.name);
+}
+			
+else if(this.id == "r2"){
+				
+topicIdArray_Pass.push(this.name);
+}
+			
+else if(this.id == "r3"){
+				
+topicIdArray_Low.push(this.name);
+
+}
+			
+else if(this.id == "r4"){
+				
+topicIdArray_Refuse.push(this.name);
+}
+		
+});
+		
+		
+if (topicIdArray_Refuse.length==0&&topicIdArray_Low==0&&topicIdArray_Pass==0&&topicIdArray_Quality==0){
+			
+			alert('请勾选帖子');
+			
+return false;
+}
+		
+		
+		
+if (topicIdArray_Refuse.length > 0) {
+				
+			
+$.post('/topic/checkTopicBatch_Update/-1', {topicIdList:topicIdArray_Refuse}, function(rtnCode) {
+					location.reload();
+			
+});				
+		
+}
+		
+		
+if (topicIdArray_Low.length>0){
+			
+			
+$.post('/topic/checkTopicBatchDel', {topicIdList:topicIdArray_Low}, function(rtnCode) {
+					
+location.reload();
+			
+});	
+}
+		
+		
+if(topicIdArray_Pass.length>0){
+			
+			
+$.post('/topic/checkTopicBatch_Update/1', {topicIdList:topicIdArray_Pass}, function(rtnCode) {
+					location.reload();
+			
+});			
+}
+		
+		
+if(topicIdArray_Quality.length>0){
+			
+			
+$.post('/topic/setQuality', {topicIdList:topicIdArray_Quality}, function(rtnCode) {
+					
+location.reload();
+});	
+		
+}
+
+三，controllers/topic.php中添加了功能函数
+public function setQuality(){
+		
+		
+$topicIdList = $this->input->post('topicIdList', TRUE);
+		
+		
+$result = $this->topic_model->updateTopicQualityBatch($topicIdList, $state);
+}
+	
+	
+public function checkTopicBatchDel(){
+		
+		
+$topicIdList = $this->input->post('topicIdList', TRUE);
+		
+		
+$result = $this->topic_model->delUserInBox($topicIdList);
+		
+		
+}
+修改了一个更新state的功能函数
+public function checkTopicBatch_Update($state) {
+		
+$topicIdList = $this->input->post('topicIdList', TRUE);
+		
+		
+$result = $this->topic_model->updateTopicStateBatch($topicIdList, $state);
+		
+		
+if($state == -1)
+	
+{
+			
+if ($result) 
+{
+	
+foreach ($topicIdList as $idx => $val) {
+					
+$this->deleteRes($val);
+				
+}
+			
+}
+			
+echo $result ? "1" : "0";		
+}
+	
+}
+
+四，models/topic_model.php中添加功能函数
+//选中优质选项时设置highQuality = 1,state = 1
+public function updateTopicQualityBatch($idArray,$state) {
+		
+		$topicIDListStr = implode(",", $idArray);
+		
+		$sql = "UPDATE topic SET highQuality = 1,state = 1 WHERE id IN({$topicIDListStr});";
+		
+		return $this->db->query($sql);
+	}
+	//选中低质是删除收件箱中未读的帖子，并且设置highQuality = -1,state = 1
+	public function delUserInBox($idArray){
+		
+		$topicIDListStr = implode(",", $idArray);
+		
+		$sql = "DELETE FROM user_inbox WHERE topicID IN({$topicIDListStr}) AND isRead=0;";
+		
+		$result = $this->db->query($sql);
+		
+		if($result){
+			
+			$sql = "UPDATE topic SET highQuality = -1,state = 1 WHERE id IN({$topicIDListStr});";
+			
+			return $this->db->query($sql);
+		}
+		
+	}
